@@ -36,12 +36,16 @@ func calculate(in string) (string, error) {
 
 	in = strings.ReplaceAll(in, " ", "")
 
+	return calculateWithourWhitespaces(in)
+}
+
+func calculateWithourWhitespaces(in string) (string, error) {
 	numberOfNumbers := 0
 	result := 0
 	numberAsString := ""
 	for _, r := range in {
 		if !isValidCharacter(string(r)) {
-			_, err := toInt(string(r))
+			_, err := toInt(string(numberAsString))
 			return "", fmt.Errorf("not valid character: %w", err)
 		}
 
@@ -51,16 +55,11 @@ func calculate(in string) (string, error) {
 		}
 
 		if isSign(string(r)) {
-			i, err := toInt(numberAsString)
+			var err error
+			numberAsString, result, numberOfNumbers, err = addResult(numberAsString, result, numberOfNumbers, string(r))
 			if err != nil {
-				return "", fmt.Errorf("can't convert to int: %w", err)
+				return "", err
 			}
-			result += i
-			numberOfNumbers += 1
-			if numberOfNumbers > 2 {
-				return "", fmt.Errorf("too many: %w", errorNotTwoOperands)
-			}
-			numberAsString = string(r)
 			continue
 		}
 
@@ -68,20 +67,31 @@ func calculate(in string) (string, error) {
 	}
 
 	if len(numberAsString) > 0 {
-		i, err := toInt(numberAsString)
+		var err error
+		numberAsString, result, numberOfNumbers, err = addResult(numberAsString, result, numberOfNumbers, "")
 		if err != nil {
-			return "", fmt.Errorf("can't convert to int: %w", err)
-		}
-		result += i
-		numberOfNumbers += 1
-		if numberOfNumbers > 2 {
-			return "", fmt.Errorf("too many: %w", errorNotTwoOperands)
+			return "", err
 		}
 	}
 	if numberOfNumbers < 2 {
 		return "", fmt.Errorf("too low: %w", errorNotTwoOperands)
 	}
 	return strconv.Itoa(result), nil
+}
+
+func addResult(numberAsString string, result, numberOfNumbers int, r string) (string, int, int, error) {
+	i, err := toInt(numberAsString)
+	if err != nil {
+		return "", 0, 0, fmt.Errorf("can't convert to int: %w", err)
+	}
+	result += i
+	numberOfNumbers += 1
+	if numberOfNumbers > 2 {
+		return "", 0, 0, fmt.Errorf("too many: %w", errorNotTwoOperands)
+	}
+	numberAsString = r
+
+	return numberAsString, result, numberOfNumbers, nil
 }
 
 func isSign(r string) bool {
