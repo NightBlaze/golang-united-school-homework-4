@@ -45,6 +45,7 @@ func calculateWithourWhitespaces(in string) (string, error) {
 	numberAsString := ""
 	for _, r := range in {
 		if !isValidCharacter(string(r)) {
+			numberAsString += string(r)
 			_, err := toInt(string(numberAsString))
 			return "", fmt.Errorf("not valid character: %w", err)
 		}
