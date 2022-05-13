@@ -44,6 +44,10 @@ func calculateWithourWhitespaces(in string) (string, error) {
 	result := 0
 	numberAsString := ""
 	for _, r := range in {
+		if string(r) == "+" {
+			continue
+		}
+
 		if !isValidCharacter(string(r)) {
 			numberAsString += string(r)
 			_, err := toInt(string(numberAsString))
