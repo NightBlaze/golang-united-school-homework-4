@@ -2,6 +2,9 @@ package string_sum
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 )
 
 //use these errors as appropriate, wrapping them with fmt.Errorf function
@@ -23,5 +26,80 @@ var (
 // Use the errors defined above as described, again wrapping into fmt.Errorf
 
 func StringSum(input string) (output string, err error) {
-	return "", nil
+	return calculate(input)
+}
+
+func calculate(in string) (string, error) {
+	if isOnlyWhitespaces(in) {
+		return "", fmt.Errorf("only whitespaces: %w", errorEmptyInput)
+	}
+
+	in = strings.ReplaceAll(in, " ", "")
+
+	numberOfNumbers := 0
+	result := 0
+	numberAsString := ""
+	for _, r := range in {
+		if !isValidCharacter(string(r)) {
+			_, err := toInt(string(r))
+			return "", fmt.Errorf("not valid character: %w", err)
+		}
+
+		if len(numberAsString) == 0 {
+			numberAsString += string(r)
+			continue
+		}
+
+		if isSign(string(r)) {
+			i, err := toInt(numberAsString)
+			if err != nil {
+				return "", fmt.Errorf("can't convert to int: %w", err)
+			}
+			result += i
+			numberOfNumbers += 1
+			if numberOfNumbers > 2 {
+				return "", fmt.Errorf("too many: %w", errorNotTwoOperands)
+			}
+			numberAsString = string(r)
+			continue
+		}
+
+		numberAsString += string(r)
+	}
+
+	if len(numberAsString) > 0 {
+		i, err := toInt(numberAsString)
+		if err != nil {
+			return "", fmt.Errorf("can't convert to int: %w", err)
+		}
+		result += i
+		numberOfNumbers += 1
+		if numberOfNumbers > 2 {
+			return "", fmt.Errorf("too many: %w", errorNotTwoOperands)
+		}
+	}
+	if numberOfNumbers < 2 {
+		return "", fmt.Errorf("too low: %w", errorNotTwoOperands)
+	}
+	return strconv.Itoa(result), nil
+}
+
+func isSign(r string) bool {
+	return r == "+" || r == "-"
+}
+
+func isNumber(r string) bool {
+	return r == "0" || r == "1" || r == "2" || r == "3" || r == "4" || r == "5" || r == "6" || r == "7" || r == "8" || r == "9"
+}
+
+func toInt(in string) (int, error) {
+	return strconv.Atoi(in)
+}
+
+func isOnlyWhitespaces(in string) bool {
+	return strings.TrimSpace(in) == ""
+}
+
+func isValidCharacter(in string) bool {
+	return isNumber(in) || isSign(in)
 }
